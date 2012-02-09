@@ -1,36 +1,26 @@
 <?php
-require_once 'MDB2.php';
+require_once 'DB.php';
 
 class DBSQ {
-	static private $_connected=false;
 	static private $_dsn=null;
-	private $data=array();
+	static private $_db=null;
+	private $_data=array();
 	static function setMySQLCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysql://$username:$password@$host/$database";
+		self::$_db=DB::connect(self::$_dsn);
 	}
-	
-	function __construct($classname) { 
-
+	static function setMySQLiCredentials($username,$password,$database,$host='localhost') { 
+		self::$_dsn="mysqli://$username:$password@$host/$database";
+		self::$_db=DB::connect(self::$_dsn);
 	}
-	public function get() { 
-
+	public static function get($id,$uniqueindexname='id') { 
+		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ?', array($uniqueindexname, $id),DB_FETCHMODE_ASSOC);
+		$classname=get_called_class();
+		$new = new $classname;
+		$new->_loadData($res);
 	}
-	public function query($query,$params=array()) { 
-		$res=$db->query($query,$params);
-		if (PEAR::isError($res)) { 
-
-		} else { 
-			return $res;
-		}
-	}
-	public function connect() { 
-		self::$_db=MDB2::factory(self::$_dsn);
-		if (PEAR::isError($db)) { 
-			throw new Exception($db->getMessage());
-		}
-	}
-	public function disconnect() { 
-		self::$_db->disconnect();
+	public static function getAll($where="1 = 1",$args=array()) { 
+		$res=self::$_db->query('select * from `'.get_called_class().'` WHERE '.$where, $args);
 	}
 	
 }
