@@ -5,6 +5,6 @@ function __autoload($class) {
 }
 DBSQ::setMySQLCredentials('root','','test');
 $user=user::get(1);
-var_dump($user->email);
-var_dump($user);
+$userfile=user_file::get();
+$userfile->user_id=$user;
 

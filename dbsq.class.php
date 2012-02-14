@@ -62,7 +62,7 @@ class DBSQ {
 		}
 	}
 	public function __set($name,$value) { 
-		$this->_data[$name]=$value;
+		$this->_setDataVal($name,$value);
 	}
 	public function __isset($name) { 
 		return isset($this->_data[$name]);
@@ -196,6 +196,9 @@ class DBSQ {
 		return $ret;
 	}
 	private function _setDataVal($key,$val) { 
+		if (is_object($val)) { 
+			$val=(string)$val;
+		}
 		if (substr($key,-3,3)=='_id') { 
 			$okey=$key;
 			$key=substr($key,0,strlen($key)-3);
@@ -228,6 +231,7 @@ class DBSQ {
 	private function _create() { 
 		$ldata=$this->_data;
 		unset($ldata['id']);
+		$ldata=$this->_convertObjectsToIDs($ldata);
 		self::_startTime();
 		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_INSERT);
 		self::_endTime($this);
@@ -241,6 +245,7 @@ class DBSQ {
 		$ldata=$this->_data;
 		$id=$ldata['id'];
 		unset($ldata['id']);
+		$ldata=$this->_convertObjectsToIDs($ldata);
 		self::_startTime();
 		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_UPDATE, 'id='.$id);
 		self::_endTime($this);
@@ -313,5 +318,14 @@ class DBSQ {
 			}
 			self::$_queryTime+=microtime()-self::$_queryTimeStartPoint;
 		}
+	}
+	static private function _convertObjectsToIDs($data) { 
+		foreach ($data as $key => &$val) { 
+			if (is_object($val)) { 
+				$data[$key.'_id']=(string)$val;
+				unset($data[$key]);
+			}
+		}
+		return $data;
 	}
 }
