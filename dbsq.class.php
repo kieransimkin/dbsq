@@ -49,8 +49,10 @@ class DBSQ {
 		self::$_dsn="mysqli://$username:$password@$host/$database";
 		self::$_db=DB::connect(self::$_dsn);
 	}
-	static private function _getNewInstance() { 
-		$classname=get_called_class();
+	static private function _getNewInstance($classname=null) { 
+		if (is_null($classname) { 
+			$classname=get_called_class();
+		}
 		if ($classname=='DBSQ') { 
 			throw new Exception('You cannot create instances of the DBSQ class');
 			return null;
@@ -69,6 +71,7 @@ class DBSQ {
 		$new=self::_getNewInstance();
 		$new->_data[$uniqueindexname]=$new->_lazyLoadId=$id;
 		$new->_lazyLoadIndexName=$uniqueindexname;
+		$mew->_lazyLoadMode='done';
 		if ((self::$_lazyLoad || $forcelazy) && !$forceprecache) { 
 			if ($forcelazy) { 
 				$new->_lazyLoadMode=$forcelazy;
@@ -118,11 +121,16 @@ class DBSQ {
 	public function _update() { 
 
 	}
-	static public function getAll($where="1 = 1",$args=array()) { 
-		$res=self::$_db->getAll('select * from `'.get_called_class().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
+	static public function getAll($where="1 = 1",$args=array(),$classname=null) { 
+		if (get_called_class()=='DBSQ' && !is_null($classname)) { 
+			$res=self::$_db->getAll($where, $args,DB_FETCHMODE_ASSOC);
+		} else { 
+			$res=self::$_db->getAll('select * from `'.get_called_class().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
+			$classname=null;
+		}
 		$ret=array();
 		foreach ($res as $row) { 
-			$new=self::_getNewInstance();
+			$new=self::_getNewInstance($classname);
 			$new->_lazyLoadMode='col';
 			$new->_lazyLoadId=$row['id'];
 			$new->_lazyLoadIndexName='id';
