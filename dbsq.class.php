@@ -89,7 +89,7 @@ class DBSQ {
 		self::$_db=DB::connect(self::$_dsn);
 		self::_endTime();
 		if (PEAR::isError(self::$_db)) { 
-			throw new DBSQ_Exception(self::$_db->getMessage());
+			throw new DBSQ_Exception(self::$_db->getMessage(),self::$_db->getCode());
 			return null;
 		}
 	}
@@ -99,7 +99,7 @@ class DBSQ {
 		self::$_db=DB::connect(self::$_dsn);
 		self::_endTime();
 		if (PEAR::isError(self::$_db)) { 
-			throw new DBSQ_Exception(self::$_db->getMessage());
+			throw new DBSQ_Exception(self::$_db->getMessage(),self::$_db->getCode());
 			return null;
 		}
 	}
@@ -152,7 +152,7 @@ class DBSQ {
 		$res=self::$_db->getOne('select last_insert_id()');
 		self::_endTime();
 		if (PEAR::isError($res)) { 
-			throw new DBSQ_Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
 		}
 		return $res;
@@ -162,7 +162,7 @@ class DBSQ {
 		$res=self::$_db->affectedRows();
 		self::_endTime();
 		if (PEAR::isError($res)) { 
-			throw new DBSQ_Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
 		}
 		return $res;
@@ -177,7 +177,7 @@ class DBSQ {
 		}
 		self::_endTime($classname);
 		if (PEAR::isError($res)) { 
-			throw new DBSQ_Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
 		}
 		$ret=array();
@@ -237,7 +237,7 @@ class DBSQ {
 		$res=self::$_db->autoExecute(self::_getTableName(),$ldata,DB_AUTOQUERY_INSERT);
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
-			throw new DBSQ_Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
 		}
 		return ($this->_data['id']=$this->lastInsertID());
@@ -251,7 +251,7 @@ class DBSQ {
 		$res=self::$_db->autoExecute(self::_getTableName(),$ldata,DB_AUTOQUERY_UPDATE, 'id='.$id);
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
-			throw new DBSQ_Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
 		}
 		return $res;
@@ -271,7 +271,7 @@ class DBSQ {
 		$res=self::$_db->getOne('select ! from `'.self::_getTableName().'` WHERE ! = ?', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
-			throw new DBSQ_Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
 		}
 		$this->_setDataVal($colname,$res);
@@ -283,7 +283,7 @@ class DBSQ {
 		$res=self::$_db->getRow('select * from `'.self::_getTableName().'` WHERE ! = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
-			throw new DBSQ_Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
 		}
 		$this->_loadDataRow($res);
