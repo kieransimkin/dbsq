@@ -2,11 +2,15 @@
 require_once 'DB.php';
 class DBSQ_Exception extends Exception { }
 class DBSQ {
-	static private $_dsn=null;
-	static private $_db=null;
+	
+	/* These can be overridden in model extension classes: */
 	static private $_lazyLoad='row';
 	static private $_profileQueryTime=false;
 	static private $_foreignKeySeparator='__';
+
+	/* These are internal and shouldn't be fiddled with: */
+	static private $_dsn=null;
+	static private $_db=null;
 	static private $_cache=array();
 	static private $_queryTime=0;
 	static private $_queryTimeStartPoint=null;
@@ -15,6 +19,7 @@ class DBSQ {
 	private $_lazyLoadMode=null;
 	private $_data=array();
 	private $_localQueryTime=0;
+
 	public function __get($name) { 
 		if (isset($this->_data[$name])) { 
 			return $this->_data[$name];
