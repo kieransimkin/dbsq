@@ -6,6 +6,7 @@ class DBSQ {
 	static private $_db=null;
 	static private $_lazyLoad='row';
 	static private $_foreignKeySeparator='__';
+	static private $_cache=array();
 	private $_lazyLoadId=null;
 	private $_lazyLoadIndexName=null;
 	private $_lazyLoadMode=null;
@@ -68,6 +69,9 @@ class DBSQ {
 			throw new Exception('forcelazy must be row or col');
 			return;
 		}
+		if (isset(self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id])) { 
+			return self::$_cache[$uniqueindexname.'-'.$id];
+		}
 		$new=self::_getNewInstance();
 		$new->_data[$uniqueindexname]=$new->_lazyLoadId=$id;
 		$new->_lazyLoadIndexName=$uniqueindexname;
@@ -78,9 +82,11 @@ class DBSQ {
 			} else { 
 				$new->_lazyLoadMode=self::$_lazyLoad;
 			}
+			self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id]=$new;
 			return $new;
 		}
 		$new->_doGetRow();
+		self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id]=$new;
 		return $new;
 	}
 	private function _assertLazyLoadSetup() { 
@@ -130,11 +136,16 @@ class DBSQ {
 		}
 		$ret=array();
 		foreach ($res as $row) { 
-			$new=self::_getNewInstance($classname);
-			$new->_lazyLoadMode='col';
-			$new->_lazyLoadId=$row['id'];
-			$new->_lazyLoadIndexName='id';
+			if (isset(self::$_cache[$classname.'-id-'.$row['id']])) { 
+				$new=self::$_cache[$classname.'-id-'.$row['id']];
+			} else { 
+				$new=self::_getNewInstance($classname);
+				$new->_lazyLoadMode='col';
+				$new->_lazyLoadId=$row['id'];
+				$new->_lazyLoadIndexName='id';
+			}
 			$new->_loadDataRow($res);
+			self::$_cache[$classname.'-id-'.$row['id']]=$new;
 			$ret[]=$new;
 		}
 		return $ret;
