@@ -49,7 +49,9 @@ class DBSQ {
 	}
 	static public function setMySQLCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysql://$username:$password@$host/$database";
+		self::_startTime();
 		self::$_db=DB::connect(self::$_dsn);
+		self::_endTime();
 		if (PEAR::isError(self::$_db)) { 
 			throw new DBSQ_Exception(self::$_db->getMessage());
 			return null;
@@ -57,7 +59,9 @@ class DBSQ {
 	}
 	static public function setMySQLiCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysqli://$username:$password@$host/$database";
+		self::_startTime();
 		self::$_db=DB::connect(self::$_dsn);
+		self::_endTime();
 		if (PEAR::isError(self::$_db)) { 
 			throw new DBSQ_Exception(self::$_db->getMessage());
 			return null;
@@ -108,7 +112,9 @@ class DBSQ {
 	}
 	// This will need customizing for non-MySQL DBs:
 	public function lastInsertID() { 
+		self::_startTime();
 		$res=self::$_db->getOne('select last_insert_id()');
+		self::_endTime();
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -116,7 +122,9 @@ class DBSQ {
 		return $res;
 	}
 	public function affectedRows() { 
+		self::_startTime();
 		$res=self::$_db->affectedRows();
+		self::_endTime();
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -124,12 +132,14 @@ class DBSQ {
 		return $res;
 	}
 	static public function getAll($where="1 = 1",$args=array(),$classname=null) { 
+		self::_startTime();
 		if (get_called_class()=='DBSQ' && !is_null($classname)) { 
 			$res=self::$_db->getAll($where, $args,DB_FETCHMODE_ASSOC);
 		} else { 
 			$res=self::$_db->getAll('select * from `'.get_called_class().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
 			$classname=null;
 		}
+		self::_endTime();
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -183,7 +193,9 @@ class DBSQ {
 	private function _create() { 
 		$ldata=$this->_data;
 		unset($ldata['id']);
+		self::_startTime();
 		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_INSERT);
+		self::_endTime();
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -194,7 +206,9 @@ class DBSQ {
 		$ldata=$this->_data;
 		$id=$ldata['id'];
 		unset($ldata['id']);
+		self::_startTime();
 		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_UPDATE, 'id='.$id);
+		self::_endTime();
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -212,7 +226,9 @@ class DBSQ {
 	}
 	private function _doGetCol($colname) { 
 		$this->_assertLazyLoadSetup();
+		self::_startTime();
 		$res=self::$_db->getOne('select ? from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
+		self::_endTime();
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -222,7 +238,9 @@ class DBSQ {
 	}
 	private function _doGetRow() { 
 		$this->_assertLazyLoadSetup();
+		self::_startTime();
 		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
+		self::_endTime();
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -239,5 +257,11 @@ class DBSQ {
 		}
 		$new=new $classname;
 		return $new;
+	}
+	static private function _startTime() { 
+
+	}
+	static private function _endTime() { 
+
 	}
 }
