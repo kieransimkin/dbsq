@@ -47,24 +47,13 @@ class DBSQ {
 			throw new Exception('You cannot create instances of the DBSQ class');
 		}
 	}
-	static function setMySQLCredentials($username,$password,$database,$host='localhost') { 
+	static public function setMySQLCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysql://$username:$password@$host/$database";
 		self::$_db=DB::connect(self::$_dsn);
 	}
-	static function setMySQLiCredentials($username,$password,$database,$host='localhost') { 
+	static public function setMySQLiCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysqli://$username:$password@$host/$database";
 		self::$_db=DB::connect(self::$_dsn);
-	}
-	static private function _getNewInstance($classname=null) { 
-		if (is_null($classname) { 
-			$classname=get_called_class();
-		}
-		if ($classname=='DBSQ') { 
-			throw new Exception('You cannot create instances of the DBSQ class');
-			return null;
-		}
-		$new=new $classname;
-		return $new;
 	}
 	static public function get($id=null,$uniqueindexname='id',$forcelazy=false,$forceprecache=false) { 
 		if (is_null($id)) { 
@@ -94,23 +83,6 @@ class DBSQ {
 		self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id]=$new;
 		return $new;
 	}
-	private function _assertLazyLoadSetup() { 
-		if (is_null($this->_lazyLoadId) || is_null($this->_lazyLoadIndexName) || is_null($this->_lazyLoadMode)) { 
-			throw new Exception('You need to load the object before you can read from it!');
-			return;
-		}
-	}
-	private function _doGetCol($colname) { 
-		$this->_assertLazyLoadSetup();
-		$res=self::$_db->getOne('select ? from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
-		$this->_setDataVal($colname,$res);
-		return $res;
-	}
-	private function _doGetRow() { 
-		$this->_assertLazyLoadSetup();
-		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
-		$this->_loadDataRow($res);
-	}
 	public function save() { 
 		if (func_num_args()==1) { 
 			if (func_get_arg(0)===null) { 
@@ -126,11 +98,12 @@ class DBSQ {
 			return $this->_data['id'];
 		}
 	}
-	public function _create() { 
-
+	// This will need customizing for non-MySQL DBs:
+	public function lastInsertID() { 
+		return self::$_db->getOne('select last_insert_id()');
 	}
-	public function _update() { 
-
+	public function affectedRows() { 
+		return self::$_db->affectedRows();
 	}
 	static public function getAll($where="1 = 1",$args=array(),$classname=null) { 
 		if (get_called_class()=='DBSQ' && !is_null($classname)) { 
@@ -166,7 +139,7 @@ class DBSQ {
 				$prefix=$bits[0];
 				$varname=$bits[1];
 			}
-			if (class_exists($varname)) { 
+			if (!is_null($val) && class_exists($varname)) { 
 				$new=$varname::get($val);
 				if (strlen($prefix)>0) { 
 					$this->_data[$prefix.self::$_foreignKeySeparator.$varname]=$new;
@@ -184,5 +157,43 @@ class DBSQ {
 		foreach ($data as $key => $val) { 
 			$this->_setDataVal($key,$val);
 		}
+	}
+	private function _create() { 
+		self::$_db->autoExecute(get_called_class(),$this->_getFieldArray(),DB_AUTOQUERY_INSERT);
+		return $this->lastInsertID();
+	}
+	private function _update() { 
+		self::$_db->autoExecute(get_called_class(),$this->_getFieldArray(),DB_AUTOQUERY_UPDATE, 'id='.$this->_data['id']);
+	}
+	private function _getFieldArray() { 
+		return array_keys($this->_data);
+	}
+	private function _assertLazyLoadSetup() { 
+		if (is_null($this->_lazyLoadId) || is_null($this->_lazyLoadIndexName) || is_null($this->_lazyLoadMode)) { 
+			throw new Exception('You need to load the object before you can read from it!');
+			return;
+		}
+	}
+	private function _doGetCol($colname) { 
+		$this->_assertLazyLoadSetup();
+		$res=self::$_db->getOne('select ? from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
+		$this->_setDataVal($colname,$res);
+		return $res;
+	}
+	private function _doGetRow() { 
+		$this->_assertLazyLoadSetup();
+		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
+		$this->_loadDataRow($res);
+	}
+	static private function _getNewInstance($classname=null) { 
+		if (is_null($classname) { 
+			$classname=get_called_class();
+		}
+		if ($classname=='DBSQ') { 
+			throw new Exception('You cannot create instances of the DBSQ class');
+			return null;
+		}
+		$new=new $classname;
+		return $new;
 	}
 }
