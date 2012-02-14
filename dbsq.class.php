@@ -28,7 +28,7 @@ class DBSQ {
 			return;
 		}
 		$new=self::_getNewInstance();
-		$new->_lazyLoadId=$id;
+		$new->_data[$uniqueindexname]=$new->_lazyLoadId=$id;
 		$new->_lazyLoadIndexName=$uniqueindexname;
 		if ((self::$_lazyLoad || $forcelazy) && !$forceprecache) { 
 			if ($forcelazy) { 
@@ -38,16 +38,27 @@ class DBSQ {
 			}
 			return $new;
 		}
-		$new->_doGetRow($id,$uniqueindexname
+		$new->_doGetRow($id,$uniqueindexname);
 	}
-
+	private function _doGetCol($colname) { 
+		$res=self::$_db->getOne('select ? from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
+		return $res;
+	}
 	private function _doGetRow() { 
-		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
+		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		$this->_loadDataRow($res);
 	}
-	private function _doGetCol($
 	static public function getAll($where="1 = 1",$args=array()) { 
-		$res=self::$_db->query('select * from `'.get_called_class().'` WHERE '.$where, $args);
+		$res=self::$_db->getAll('select * from `'.get_called_class().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
+		$ret=array();
+		foreach ($res as $row) { 
+			$new=self::_getNewInstance();
+			$new->_lazyLoadId=$row['id'];
+			$new->_lazyLoadIndexName='id';
+			$new->_loadDataRow($res);
+			$ret[]=$new;
+		}
+		return $ret;
 	}
 	
 }
