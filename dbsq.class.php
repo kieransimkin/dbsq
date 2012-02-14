@@ -42,6 +42,11 @@ class DBSQ {
 			return 'null';
 		}
 	}
+	function __construct() { 
+		if (get_called_class()=='DBSQ') { 
+			throw new Exception('You cannot create instances of the DBSQ class');
+		}
+	}
 	static function setMySQLCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysql://$username:$password@$host/$database";
 		self::$_db=DB::connect(self::$_dsn);
