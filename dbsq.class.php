@@ -40,11 +40,19 @@ class DBSQ {
 		}
 		$new->_doGetRow($id,$uniqueindexname);
 	}
+	private function _assertLazyLoadSetup() { 
+		if (is_null($this->_lazyLoadId) || is_null($this->lazyLoadIndexName) || is_null($this->lazyLoadMode)) { 
+			throw new Exception('You need to load the object before you can read from it!');
+			return;
+		}
+	}
 	private function _doGetCol($colname) { 
+		$this->_assertLazyLoadSetup();
 		$res=self::$_db->getOne('select ? from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
 		return $res;
 	}
 	private function _doGetRow() { 
+		$this->_assertLazyLoadSetup();
 		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		$this->_loadDataRow($res);
 	}
@@ -59,6 +67,33 @@ class DBSQ {
 			$ret[]=$new;
 		}
 		return $ret;
+	}
+	private function _loadDataRow($data) { 
+		foreach ($data as $key => $val) { 
+			if (substr($key,-3,3)=='_id') { 
+				$key=substr($key,0,strlen($key)-3);
+				$bits=explode("__",$key,2);
+				$prefix='';
+				$varname=$key;
+				if (count($bits)>1) { 
+					$prefix=$bits[0];
+					$varname=$bits[1];
+				}
+				if (class_exists($varname)) { 
+					$new=$varname::get($val);
+					if (strlen($prefix)>0) { 
+						$this->_data[$prefix.'__'.$varname]=$new;
+					} else { 
+						$this->_data[$varname]=$new;
+					}
+				} else { 
+
+					$this->_data[$key]=$val;
+				}
+			} else { 
+				$this->_data[$key]=$val;
+			}
+		}
 	}
 	
 }
