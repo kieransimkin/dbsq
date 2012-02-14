@@ -97,6 +97,27 @@ class DBSQ {
 		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		$this->_loadDataRow($res);
 	}
+	public function save() { 
+		if (func_num_args()==1) { 
+			if (func_get_arg(0)===null) { 
+				@unset($this->_data['id']);
+			} else { 
+				$this->_data['id']=func_get_arg(0);
+			}
+		}
+		if (!isset($this->_data['id'])) { 
+			return $this->_create();
+		} else { 
+			$this->_update();
+			return $this->_data['id'];
+		}
+	}
+	public function _create() { 
+
+	}
+	public function _update() { 
+
+	}
 	static public function getAll($where="1 = 1",$args=array()) { 
 		$res=self::$_db->getAll('select * from `'.get_called_class().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
 		$ret=array();
