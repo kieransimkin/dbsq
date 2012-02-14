@@ -10,6 +10,19 @@ class DBSQ {
 	private $_lazyLoadIndexName=null;
 	private $_lazyLoadMode=null;
 	private $_data=array();
+	public function __get($name) { 
+		if (isset($this->_data[$name])) { 
+			return $this->_data[$name];
+		} else if ($this->_lazyLoadMode=='row') { 
+			$this->_doGetRow();
+			return $this->_data[$name];
+		} else if ($this->_lazyLoadMode=='col') { 
+			return $this->_doGetCol($name);
+		} else { 
+			throw new Exception('Unable to find property: '.$name);
+			return null;
+		}
+	}
 	static function setMySQLCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysql://$username:$password@$host/$database";
 		self::$_db=DB::connect(self::$_dsn);
@@ -46,7 +59,7 @@ class DBSQ {
 			}
 			return $new;
 		}
-		$new->_doGetRow($id,$uniqueindexname);
+		$new->_doGetRow();
 	}
 	private function _assertLazyLoadSetup() { 
 		if (is_null($this->_lazyLoadId) || is_null($this->_lazyLoadIndexName) || is_null($this->_lazyLoadMode)) { 
@@ -57,6 +70,7 @@ class DBSQ {
 	private function _doGetCol($colname) { 
 		$this->_assertLazyLoadSetup();
 		$res=self::$_db->getOne('select ? from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
+		$this->_setDataVal($colname,$res);
 		return $res;
 	}
 	private function _doGetRow() { 
@@ -77,30 +91,33 @@ class DBSQ {
 		}
 		return $ret;
 	}
-	private function _loadDataRow($data) { 
-		foreach ($data as $key => $val) { 
-			if (substr($key,-3,3)=='_id') { 
-				$key=substr($key,0,strlen($key)-3);
-				$bits=explode(self::$_foreignKeySeparator,$key,2);
-				$prefix='';
-				$varname=$key;
-				if (count($bits)>1) { 
-					$prefix=$bits[0];
-					$varname=$bits[1];
-				}
-				if (class_exists($varname)) { 
-					$new=$varname::get($val);
-					if (strlen($prefix)>0) { 
-						$this->_data[$prefix.self::$_foreignKeySeparator.$varname]=$new;
-					} else { 
-						$this->_data[$varname]=$new;
-					}
+	private function _setDataVal($key,$val) { 
+		if (substr($key,-3,3)=='_id') { 
+			$key=substr($key,0,strlen($key)-3);
+			$bits=explode(self::$_foreignKeySeparator,$key,2);
+			$prefix='';
+			$varname=$key;
+			if (count($bits)>1) { 
+				$prefix=$bits[0];
+				$varname=$bits[1];
+			}
+			if (class_exists($varname)) { 
+				$new=$varname::get($val);
+				if (strlen($prefix)>0) { 
+					$this->_data[$prefix.self::$_foreignKeySeparator.$varname]=$new;
 				} else { 
-					$this->_data[$key]=$val;
+					$this->_data[$varname]=$new;
 				}
 			} else { 
 				$this->_data[$key]=$val;
 			}
+		} else { 
+			$this->_data[$key]=$val;
+		}
+	}
+	private function _loadDataRow($data) { 
+		foreach ($data as $key => $val) { 
+			$this->_setDataVal($key,$val);
 		}
 	}
 }
