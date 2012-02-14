@@ -4,7 +4,7 @@ class DBSQ_Exception extends Exception { }
 class DBSQ {
 	
 	/* These can be overridden in model extension classes: */
-	static private $_lazyLoad='row';
+	static private $_lazyLoad='col';
 	static private $_profileQueryTime=false;
 	static private $_foreignKeySeparator='__';
 
@@ -107,7 +107,7 @@ class DBSQ {
 	public function save() { 
 		if (func_num_args()==1) { 
 			if (func_get_arg(0)===null) { 
-				@unset($this->_data['id']);
+				unset($this->_data['id']);
 			} else { 
 				$this->_data['id']=func_get_arg(0);
 			}
@@ -236,7 +236,7 @@ class DBSQ {
 	private function _doGetCol($colname) { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::$_db->getOne('select ? from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
+		$res=self::$_db->getOne('select ! from `'.get_called_class().'` WHERE ! = ?', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
@@ -248,7 +248,7 @@ class DBSQ {
 	private function _doGetRow() { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
+		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ! = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
@@ -257,7 +257,7 @@ class DBSQ {
 		$this->_loadDataRow($res);
 	}
 	static private function _getNewInstance($classname=null) { 
-		if (is_null($classname) { 
+		if (is_null($classname)) { 
 			$classname=get_called_class();
 		}
 		if ($classname=='DBSQ') { 
