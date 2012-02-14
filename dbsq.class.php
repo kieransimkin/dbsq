@@ -79,7 +79,7 @@ class DBSQ {
 		}
 	}
 	function __construct() { 
-		if (get_called_class()=='DBSQ') { 
+		if (self::_getTableName()=='DBSQ') { 
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
 		}
 	}
@@ -111,8 +111,8 @@ class DBSQ {
 			throw new DBSQ_Exception('forcelazy must be row or col');
 			return;
 		}
-		if (isset(self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id])) { 
-			return self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id];
+		if (isset(self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id])) { 
+			return self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id];
 		}
 		$new=self::_getNewInstance();
 		$new->_data[$uniqueindexname]=$new->_lazyLoadId=$id;
@@ -124,11 +124,11 @@ class DBSQ {
 			} else { 
 				$new->_lazyLoadMode=self::$_lazyLoad;
 			}
-			self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id]=$new;
+			self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id]=$new;
 			return $new;
 		}
 		$new->_doGetRow();
-		self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id]=$new;
+		self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id]=$new;
 		return $new;
 	}
 	public function save() { 
@@ -169,11 +169,11 @@ class DBSQ {
 	}
 	static public function getAll($where="1 = 1",$args=array(),$classname=null) { 
 		self::_startTime();
-		if (get_called_class()=='DBSQ' && !is_null($classname)) { 
+		if (self::_getTableName()=='DBSQ' && !is_null($classname)) { 
 			$res=self::$_db->getAll($where, $args,DB_FETCHMODE_ASSOC);
 		} else { 
-			$res=self::$_db->getAll('select * from `'.get_called_class().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
-			$classname=get_called_class();
+			$res=self::$_db->getAll('select * from `'.self::_getTableName().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
+			$classname=self::_getTableName();
 		}
 		self::_endTime($classname);
 		if (PEAR::isError($res)) { 
@@ -234,7 +234,7 @@ class DBSQ {
 		unset($ldata['id']);
 		$ldata=$this->_convertObjectsToIDs($ldata);
 		self::_startTime();
-		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_INSERT);
+		$res=self::$_db->autoExecute(self::_getTableName(),$ldata,DB_AUTOQUERY_INSERT);
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
@@ -248,7 +248,7 @@ class DBSQ {
 		unset($ldata['id']);
 		$ldata=$this->_convertObjectsToIDs($ldata);
 		self::_startTime();
-		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_UPDATE, 'id='.$id);
+		$res=self::$_db->autoExecute(self::_getTableName(),$ldata,DB_AUTOQUERY_UPDATE, 'id='.$id);
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
@@ -268,7 +268,7 @@ class DBSQ {
 	private function _doGetCol($colname) { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::$_db->getOne('select ! from `'.get_called_class().'` WHERE ! = ?', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
+		$res=self::$_db->getOne('select ! from `'.self::_getTableName().'` WHERE ! = ?', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
@@ -280,7 +280,7 @@ class DBSQ {
 	private function _doGetRow() { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ! = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
+		$res=self::$_db->getRow('select * from `'.self::_getTableName().'` WHERE ! = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
@@ -290,7 +290,7 @@ class DBSQ {
 	}
 	static private function _getNewInstance($classname=null) { 
 		if (is_null($classname)) { 
-			$classname=get_called_class();
+			$classname=self::_getTableName();
 		}
 		if ($classname=='DBSQ') { 
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
@@ -328,5 +328,8 @@ class DBSQ {
 			}
 		}
 		return $data;
+	}
+	static private function _getTableName() { 
+		return strtolower(get_called_class());
 	}
 }

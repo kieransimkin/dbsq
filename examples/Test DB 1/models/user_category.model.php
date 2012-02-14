@@ -1,4 +1,4 @@
 <?php
-class user_category extends DBSQ { 
+class User_category extends DBSQ { 
 
 }

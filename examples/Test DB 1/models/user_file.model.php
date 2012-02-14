@@ -1,4 +1,4 @@
 <?php
-class user_file extends DBSQ { 
+class User_file extends DBSQ { 
 
 }
