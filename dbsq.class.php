@@ -13,6 +13,8 @@ class DBSQ {
 	public function __get($name) { 
 		if (isset($this->_data[$name])) { 
 			return $this->_data[$name];
+		} else if (substr($name,-3,3)=='_id') { 
+			return $this->_data[substr($name,0,strlen($name)-3)];	
 		} else if ($this->_lazyLoadMode=='row') { 
 			$this->_doGetRow();
 			return $this->_data[$name];
@@ -21,6 +23,22 @@ class DBSQ {
 		} else { 
 			throw new Exception('Unable to find property: '.$name);
 			return null;
+		}
+	}
+	public function __set($name,$value) { 
+		$this->_data[$name]=$value;
+	}
+	public function __isset($name) { 
+		return isset($this->_data[$name]);
+	}
+	public function __unset($name) { 
+		unset($this->_data[$name]);
+	}
+	public function __toString() { 
+		if (isset($this->_data['id'])) { 
+			return $this->_data['id'];
+		} else {
+			return 'null';
 		}
 	}
 	static function setMySQLCredentials($username,$password,$database,$host='localhost') { 
@@ -60,6 +78,7 @@ class DBSQ {
 			return $new;
 		}
 		$new->_doGetRow();
+		return $new;
 	}
 	private function _assertLazyLoadSetup() { 
 		if (is_null($this->_lazyLoadId) || is_null($this->_lazyLoadIndexName) || is_null($this->_lazyLoadMode)) { 
