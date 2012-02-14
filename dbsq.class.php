@@ -72,9 +72,9 @@ class DBSQ {
 	}
 	public function __toString() { 
 		if (isset($this->_data['id'])) { 
-			return $this->_data['id'];
+			return (string)$this->_data['id'];
 		} else {
-			return 'null';
+			return (string)'null';
 		}
 	}
 	function __construct() { 
@@ -111,7 +111,7 @@ class DBSQ {
 			return;
 		}
 		if (isset(self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id])) { 
-			return self::$_cache[$uniqueindexname.'-'.$id];
+			return self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id];
 		}
 		$new=self::_getNewInstance();
 		$new->_data[$uniqueindexname]=$new->_lazyLoadId=$id;
