@@ -5,12 +5,16 @@ class DBSQ {
 	static private $_dsn=null;
 	static private $_db=null;
 	static private $_lazyLoad='row';
+	static private $_profileQueryTime=false;
 	static private $_foreignKeySeparator='__';
 	static private $_cache=array();
+	static private $_queryTime=0;
+	static private $_queryTimeStartPoint=null;
 	private $_lazyLoadId=null;
 	private $_lazyLoadIndexName=null;
 	private $_lazyLoadMode=null;
 	private $_data=array();
+	private $_localQueryTime=0;
 	public function __get($name) { 
 		if (isset($this->_data[$name])) { 
 			return $this->_data[$name];
@@ -111,7 +115,7 @@ class DBSQ {
 		}
 	}
 	// This will need customizing for non-MySQL DBs:
-	public function lastInsertID() { 
+	static public function lastInsertID() { 
 		self::_startTime();
 		$res=self::$_db->getOne('select last_insert_id()');
 		self::_endTime();
@@ -121,7 +125,7 @@ class DBSQ {
 		}
 		return $res;
 	}
-	public function affectedRows() { 
+	static public function affectedRows() { 
 		self::_startTime();
 		$res=self::$_db->affectedRows();
 		self::_endTime();
@@ -137,9 +141,9 @@ class DBSQ {
 			$res=self::$_db->getAll($where, $args,DB_FETCHMODE_ASSOC);
 		} else { 
 			$res=self::$_db->getAll('select * from `'.get_called_class().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
-			$classname=null;
+			$classname=get_called_class();
 		}
-		self::_endTime();
+		self::_endTime($classname);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -195,7 +199,7 @@ class DBSQ {
 		unset($ldata['id']);
 		self::_startTime();
 		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_INSERT);
-		self::_endTime();
+		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -208,7 +212,7 @@ class DBSQ {
 		unset($ldata['id']);
 		self::_startTime();
 		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_UPDATE, 'id='.$id);
-		self::_endTime();
+		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -228,7 +232,7 @@ class DBSQ {
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
 		$res=self::$_db->getOne('select ? from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
-		self::_endTime();
+		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -240,7 +244,7 @@ class DBSQ {
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
 		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
-		self::_endTime();
+		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage());
 			return null;
@@ -259,9 +263,24 @@ class DBSQ {
 		return $new;
 	}
 	static private function _startTime() { 
-
+		if (self::$_profileQueryTime) { 
+			self::$_queryTimeStartPoint=microtime();
+		}
 	}
-	static private function _endTime() { 
-
+	static private function _endTime($o=null) { 
+		if (self::$_profileQueryTime) { 
+			if (is_null(self::$_queryTimeStartPoint)) { 
+				throw new DBSQ_Exception('Can\'t end time before we\'ve started it');
+				return;
+			}
+			if (is_object($o)) { 
+				// $o is $this
+			} else if (is_string($o)) { 
+				// $o is a class name
+			} else { 
+				// $o is null
+			}
+			self::$_queryTime+=microtime()-self::$_queryTimeStartPoint;
+		}
 	}
 }
