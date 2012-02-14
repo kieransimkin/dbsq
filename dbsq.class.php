@@ -53,6 +53,7 @@ class DBSQ {
 			return $this->_data[substr($name,0,strlen($name)-3)];	
 		} else if ($this->_lazyLoadMode=='row') { 
 			$this->_doGetRow();
+			$new->_lazyLoadMode='done';
 			return $this->_data[$name];
 		} else if ($this->_lazyLoadMode=='col') { 
 			return $this->_doGetCol($name);
@@ -116,7 +117,7 @@ class DBSQ {
 		$new=self::_getNewInstance();
 		$new->_data[$uniqueindexname]=$new->_lazyLoadId=$id;
 		$new->_lazyLoadIndexName=$uniqueindexname;
-		$mew->_lazyLoadMode='done';
+		$new->_lazyLoadMode='done';
 		if ((self::$_lazyLoad || $forcelazy) && !$forceprecache) { 
 			if ($forcelazy) { 
 				$new->_lazyLoadMode=$forcelazy;
