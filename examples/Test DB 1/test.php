@@ -9,7 +9,8 @@ $userfile=user_file::get();
 $userfile->user_id=$user;
 $userfile->save();
 $userfile2=user_file::get(1);
-$iserfile2->user_id=2;
+var_dump($userfile2->user);
+$userfile2->user_id=1;
 var_dump($userfile2->user->email);
 var_dump($userfile2->user);
 
