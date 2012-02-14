@@ -1,6 +1,6 @@
 <?php
 require_once 'DB.php';
-
+class DBSQ_Exception extends Exception { }
 class DBSQ {
 	static private $_dsn=null;
 	static private $_db=null;
@@ -22,7 +22,7 @@ class DBSQ {
 		} else if ($this->_lazyLoadMode=='col') { 
 			return $this->_doGetCol($name);
 		} else { 
-			throw new Exception('Unable to find property: '.$name);
+			throw new DBSQ_Exception('Unable to find property: '.$name);
 			return null;
 		}
 	}
@@ -44,14 +44,14 @@ class DBSQ {
 	}
 	function __construct() { 
 		if (get_called_class()=='DBSQ') { 
-			throw new Exception('You cannot create instances of the DBSQ class');
+			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
 		}
 	}
 	static public function setMySQLCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysql://$username:$password@$host/$database";
 		self::$_db=DB::connect(self::$_dsn);
 		if (PEAR::isError(self::$_db)) { 
-			throw new Exception(self::$_db->getMessage());
+			throw new DBSQ_Exception(self::$_db->getMessage());
 			return null;
 		}
 	}
@@ -59,7 +59,7 @@ class DBSQ {
 		self::$_dsn="mysqli://$username:$password@$host/$database";
 		self::$_db=DB::connect(self::$_dsn);
 		if (PEAR::isError(self::$_db)) { 
-			throw new Exception(self::$_db->getMessage());
+			throw new DBSQ_Exception(self::$_db->getMessage());
 			return null;
 		}
 	}
@@ -68,7 +68,7 @@ class DBSQ {
 			return self::_getNewInstance();
 		}
 		if ($forcelazy && $forcelazy!='row' && $forcelazy!='col') { 
-			throw new Exception('forcelazy must be row or col');
+			throw new DBSQ_Exception('forcelazy must be row or col');
 			return;
 		}
 		if (isset(self::$_cache[get_called_class().'-'.$uniqueindexname.'-'.$id])) { 
@@ -110,7 +110,7 @@ class DBSQ {
 	public function lastInsertID() { 
 		$res=self::$_db->getOne('select last_insert_id()');
 		if (PEAR::isError($res)) { 
-			throw new Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage());
 			return null;
 		}
 		return $res;
@@ -118,7 +118,7 @@ class DBSQ {
 	public function affectedRows() { 
 		$res=self::$_db->affectedRows();
 		if (PEAR::isError($res)) { 
-			throw new Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage());
 			return null;
 		}
 		return $res;
@@ -131,7 +131,7 @@ class DBSQ {
 			$classname=null;
 		}
 		if (PEAR::isError($res)) { 
-			throw new Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage());
 			return null;
 		}
 		$ret=array();
@@ -185,7 +185,7 @@ class DBSQ {
 		unset($ldata['id']);
 		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_INSERT);
 		if (PEAR::isError($res)) { 
-			throw new Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage());
 			return null;
 		}
 		return ($this->_data['id']=$this->lastInsertID());
@@ -196,7 +196,7 @@ class DBSQ {
 		unset($ldata['id']);
 		$res=self::$_db->autoExecute(get_called_class(),$ldata,DB_AUTOQUERY_UPDATE, 'id='.$id);
 		if (PEAR::isError($res)) { 
-			throw new Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage());
 			return null;
 		}
 		return $res;
@@ -206,7 +206,7 @@ class DBSQ {
 	}
 	private function _assertLazyLoadSetup() { 
 		if (is_null($this->_lazyLoadId) || is_null($this->_lazyLoadIndexName) || is_null($this->_lazyLoadMode)) { 
-			throw new Exception('You need to load the object before you can read from it!');
+			throw new DBSQ_Exception('You need to load the object before you can read from it!');
 			return;
 		}
 	}
@@ -214,7 +214,7 @@ class DBSQ {
 		$this->_assertLazyLoadSetup();
 		$res=self::$_db->getOne('select ? from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
 		if (PEAR::isError($res)) { 
-			throw new Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage());
 			return null;
 		}
 		$this->_setDataVal($colname,$res);
@@ -224,7 +224,7 @@ class DBSQ {
 		$this->_assertLazyLoadSetup();
 		$res=self::$_db->getRow('select * from `'.get_called_class().'` WHERE ? = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		if (PEAR::isError($res)) { 
-			throw new Exception($res->getMessage());
+			throw new DBSQ_Exception($res->getMessage());
 			return null;
 		}
 		$this->_loadDataRow($res);
@@ -234,7 +234,7 @@ class DBSQ {
 			$classname=get_called_class();
 		}
 		if ($classname=='DBSQ') { 
-			throw new Exception('You cannot create instances of the DBSQ class');
+			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
 			return null;
 		}
 		$new=new $classname;
