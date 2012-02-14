@@ -93,6 +93,7 @@ class DBSQ {
 	}
 	private function _setDataVal($key,$val) { 
 		if (substr($key,-3,3)=='_id') { 
+			$okey=$key;
 			$key=substr($key,0,strlen($key)-3);
 			$bits=explode(self::$_foreignKeySeparator,$key,2);
 			$prefix='';
@@ -109,7 +110,7 @@ class DBSQ {
 					$this->_data[$varname]=$new;
 				}
 			} else { 
-				$this->_data[$key]=$val;
+				$this->_data[$okey]=$val;
 			}
 		} else { 
 			$this->_data[$key]=$val;
