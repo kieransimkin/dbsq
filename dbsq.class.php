@@ -5,6 +5,7 @@ class DBSQ {
 	static private $_dsn=null;
 	static private $_db=null;
 	static private $_lazyLoad='row';
+	static private $_foreignKeySeparator='__';
 	private $_lazyLoadId=null;
 	private $_lazyLoadIndexName=null;
 	private $_lazyLoadMode=null;
@@ -80,7 +81,7 @@ class DBSQ {
 		foreach ($data as $key => $val) { 
 			if (substr($key,-3,3)=='_id') { 
 				$key=substr($key,0,strlen($key)-3);
-				$bits=explode("__",$key,2);
+				$bits=explode(self::$_foreignKeySeparator,$key,2);
 				$prefix='';
 				$varname=$key;
 				if (count($bits)>1) { 
@@ -90,7 +91,7 @@ class DBSQ {
 				if (class_exists($varname)) { 
 					$new=$varname::get($val);
 					if (strlen($prefix)>0) { 
-						$this->_data[$prefix.'__'.$varname]=$new;
+						$this->_data[$prefix.self::$_foreignKeySeparator.$varname]=$new;
 					} else { 
 						$this->_data[$varname]=$new;
 					}
