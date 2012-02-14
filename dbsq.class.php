@@ -41,7 +41,7 @@ class DBSQ {
 		$new->_doGetRow($id,$uniqueindexname);
 	}
 	private function _assertLazyLoadSetup() { 
-		if (is_null($this->_lazyLoadId) || is_null($this->lazyLoadIndexName) || is_null($this->lazyLoadMode)) { 
+		if (is_null($this->_lazyLoadId) || is_null($this->_lazyLoadIndexName) || is_null($this->_lazyLoadMode)) { 
 			throw new Exception('You need to load the object before you can read from it!');
 			return;
 		}
@@ -61,6 +61,7 @@ class DBSQ {
 		$ret=array();
 		foreach ($res as $row) { 
 			$new=self::_getNewInstance();
+			$new->_lazyLoadMode='col';
 			$new->_lazyLoadId=$row['id'];
 			$new->_lazyLoadIndexName='id';
 			$new->_loadDataRow($res);
@@ -87,7 +88,6 @@ class DBSQ {
 						$this->_data[$varname]=$new;
 					}
 				} else { 
-
 					$this->_data[$key]=$val;
 				}
 			} else { 
