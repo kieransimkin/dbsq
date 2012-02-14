@@ -19,10 +19,17 @@ class DBSQ {
 	}
 	static private function _getNewInstance() { 
 		$classname=get_called_class();
+		if ($classname=='DBSQ') { 
+			throw new Exception('You cannot create instances of the DBSQ class');
+			return null;
+		}
 		$new=new $classname;
 		return $new;
 	}
-	static public function get($id,$uniqueindexname='id',$forcelazy=false,$forceprecache=false) { 
+	static public function get($id=null,$uniqueindexname='id',$forcelazy=false,$forceprecache=false) { 
+		if (is_null($id)) { 
+			return self::_getNewInstance();
+		}
 		if ($forcelazy && $forcelazy!='row' && $forcelazy!='col') { 
 			throw new Exception('forcelazy must be row or col');
 			return;
