@@ -211,7 +211,7 @@ class DBSQ {
 				$varname=$bits[1];
 			}
 			if (!is_null($val) && class_exists($varname)) { 
-				$new=$varname::get($val);
+				$new=$varname::get($val,'id','col');
 				if (strlen($prefix)>0) { 
 					$this->_data[$prefix.self::$_foreignKeySeparator.$varname]=$new;
 				} else { 
