@@ -75,7 +75,7 @@ class DBSQ {
 		if (isset($this->_data['id'])) { 
 			return (string)$this->_data['id'];
 		} else {
-			return (string)'null';
+			return 'null';
 		}
 	}
 	function __construct() { 
