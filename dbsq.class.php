@@ -196,6 +196,17 @@ class DBSQ {
 		}
 		return $ret;
 	}
+	static public function create($data) { 
+		$new=self::_getNewInstance();
+		foreach ($data as $key => $val) { 
+			$new->$key=$val;
+		}
+		$id=$new->_create();
+		$new->_data['id']=$new->_lazyLoadId=$id;
+		$new->_lazyLoadIndexName='id';
+		$new->_lazyLoadMode='done';
+		return $new;
+	}
 	private function _setDataVal($key,$val) { 
 		if (is_object($val)) { 
 			$val=(string)$val;
