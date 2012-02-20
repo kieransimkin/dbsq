@@ -78,7 +78,11 @@ class DBSQ {
 		if (isset($this->_data['id'])) { 
 			return (string)$this->_data['id'];
 		} else {
-			return 'null';
+			if ($this->_assertLazyLoadSetup(true)) { 
+				return $this->__get('id');
+			} else { 
+				return 'null';
+			}
 		}
 	}
 	function __construct() { 
@@ -273,10 +277,14 @@ class DBSQ {
 	private function _getFieldArray() { 
 		return array_keys($this->_data);
 	}
-	private function _assertLazyLoadSetup() { 
+	private function _assertLazyLoadSetup($nothrow=false) { 
 		if (is_null($this->_lazyLoadId) || is_null($this->_lazyLoadIndexName) || is_null($this->_lazyLoadMode)) { 
-			throw new DBSQ_Exception('You need to load the object before you can read from it!');
-			return;
+			if (!$nothrow) { 
+				throw new DBSQ_Exception('You need to load the object before you can read from it!');
+			}
+			return false;
+		} else { 
+			return true;
 		}
 	}
 	private function _doGetCol($colname) { 
