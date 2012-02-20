@@ -63,6 +63,9 @@ class DBSQ {
 		}
 	}
 	public function __set($name,$value) { 
+		if (is_object($value)) { 
+			$this->data[$name]=$value;
+		}
 		$this->_setDataVal($name,$value);
 	}
 	public function __isset($name) { 
