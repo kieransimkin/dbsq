@@ -112,6 +112,21 @@ class DBSQ {
 			return null;
 		}
 	}
+	static public function query($query,$params=array()) { 
+		return self::$_db->query($query,$params);
+	}
+	static public function getOne($query,$params=array()) { 
+		return self::$_db->getOne($query,$params);
+	}
+	static public function getRow($query,$params=array(),$fetchmode=DB_FETCHMODE_DEFAULT) { 
+		return self::$_db->getRow($query,$params,$fetchmode);
+	}
+	static public function getCol($query,$col=0,$params=array()) { 
+		return self::$_db->getCol($query,$col,$params);
+	}
+	static public function getAssoc($query, $force_array = false, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT, $group = false) { 
+		return self::$_db->getAssoc($query,$force_array,$params,$fetchmode,$group);
+	}
 	static public function get($id=null,$uniqueindexname='id',$forcelazy=false,$forceprecache=false) { 
 		if (is_null($id)) { 
 			return self::_getNewInstance();
@@ -158,7 +173,7 @@ class DBSQ {
 	// This will need customizing for non-MySQL DBs:
 	static public function lastInsertID() { 
 		self::_startTime();
-		$res=self::$_db->getOne('select last_insert_id()');
+		$res=self::getOne('select last_insert_id()');
 		self::_endTime();
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
@@ -292,7 +307,7 @@ class DBSQ {
 	private function _doGetCol($colname) { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::$_db->getOne('select ! from `'.self::_getTableName().'` WHERE ! = ?', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
+		$res=self::getOne('select ! from `'.self::_getTableName().'` WHERE ! = ?', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
@@ -304,7 +319,7 @@ class DBSQ {
 	private function _doGetRow() { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::$_db->getRow('select * from `'.self::_getTableName().'` WHERE ! = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
+		$res=self::getRow('select * from `'.self::_getTableName().'` WHERE ! = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		self::_endTime($this);
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
