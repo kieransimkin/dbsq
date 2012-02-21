@@ -200,6 +200,10 @@ class DBSQ {
 			$classname=self::_getTableName();
 		}
 		self::_endTime($classname);
+		if (is_null($res)) { 
+			throw new DBSQ_Exception('No results');
+			return null;
+		}
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
@@ -309,6 +313,10 @@ class DBSQ {
 		self::_startTime();
 		$res=self::getOne('select ! from `'.self::_getTableName().'` WHERE ! = ?', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
 		self::_endTime($this);
+		if (is_null($res)) { 
+			throw new DBSQ_Exception('Unable to lookup column: '.$colname);
+			return null;
+		}
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
@@ -321,6 +329,10 @@ class DBSQ {
 		self::_startTime();
 		$res=self::getRow('select * from `'.self::_getTableName().'` WHERE ! = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		self::_endTime($this);
+		if (is_null($res)) { 
+			throw new DBSQ_Exception('Unable to lookup row');
+			return null;
+		}
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
