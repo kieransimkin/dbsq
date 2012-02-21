@@ -87,6 +87,21 @@ class DBSQ {
 			}
 		}
 	}
+	public function save() { 
+		if (func_num_args()==1) { 
+			if (func_get_arg(0)===null) { 
+				unset($this->_data['id']);
+			} else { 
+				$this->_data['id']=func_get_arg(0);
+			}
+		}
+		if (!isset($this->_data['id'])) { 
+			return $this->_create();
+		} else { 
+			$this->_update();
+			return $this->_data['id'];
+		}
+	}
 	function __construct() { 
 		if (self::_getTableName()=='DBSQ') { 
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
@@ -159,21 +174,6 @@ class DBSQ {
 		}
 		self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id]=$new;
 		return $new;
-	}
-	public function save() { 
-		if (func_num_args()==1) { 
-			if (func_get_arg(0)===null) { 
-				unset($this->_data['id']);
-			} else { 
-				$this->_data['id']=func_get_arg(0);
-			}
-		}
-		if (!isset($this->_data['id'])) { 
-			return $this->_create();
-		} else { 
-			$this->_update();
-			return $this->_data['id'];
-		}
 	}
 	// This will need customizing for non-MySQL DBs:
 	static public function lastInsertID() { 
