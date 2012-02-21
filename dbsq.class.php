@@ -132,7 +132,7 @@ class DBSQ {
 			return self::_getNewInstance();
 		}
 		if ($forcelazy && $forcelazy!='row' && $forcelazy!='col') { 
-			throw new DBSQ_Exception('forcelazy must be row or col');
+			throw new DBSQ_Exception('forcelazy must be row or col or false');
 			return;
 		}
 		if (isset(self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id])) { 
@@ -151,7 +151,12 @@ class DBSQ {
 			self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id]=$new;
 			return $new;
 		}
-		$new->_doGetRow();
+		if ($forcelazy=='col') { 
+			$new->_lazyLoadMode='col';
+			$new->_doGetCol($uniqueindexname);
+		} else { 
+			$new->_doGetRow();
+		}
 		self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id]=$new;
 		return $new;
 	}
