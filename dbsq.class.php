@@ -50,7 +50,8 @@ class DBSQ {
 		if (isset($this->_data[$name])) { 
 			return $this->_data[$name];
 		} else if (substr($name,-3,3)=='_id') { 
-			return (string)$this->_data[substr($name,0,strlen($name)-3)];	
+			$fieldname=substr($name,0,strlen($name)-3);
+			return $this->$fieldname->id;
 		} else if ($this->_lazyLoadMode=='row') { 
 			$this->_doGetRow();
 			$this->_lazyLoadMode='done';
