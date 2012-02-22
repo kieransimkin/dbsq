@@ -316,7 +316,7 @@ class DBSQ {
 	private function _doGetCol($colname) { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::getOne('select ! from `'.self::_getTableName().'` WHERE ! = ?', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
+		$res=self::getOne('select ! from `'.self::_getTableName().'` WHERE ! = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
 		self::_endTime($this);
 		if (is_null($res)) { 
 			throw new DBSQ_Exception('Unable to lookup column: '.$colname);
@@ -332,7 +332,7 @@ class DBSQ {
 	private function _doGetRow() { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::getRow('select * from `'.self::_getTableName().'` WHERE ! = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
+		$res=self::getRow('select * from `'.self::_getTableName().'` WHERE ! = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		self::_endTime($this);
 		if (is_null($res)) { 
 			throw new DBSQ_Exception('Unable to lookup row');
