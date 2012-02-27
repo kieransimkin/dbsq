@@ -47,7 +47,7 @@ class DBSQ {
 	private $_localQueryTime=0;
 
 	public function __get($name) { 
-		if (isset($this->_data[$name])) { 
+		if (array_key_exists($name,$this->_data)) { 
 			return $this->_data[$name];
 		} else if (substr($name,-3,3)=='_id') { 
 			$fieldname=substr($name,0,strlen($name)-3);
@@ -71,13 +71,13 @@ class DBSQ {
 		}
 	}
 	public function __isset($name) { 
-		return isset($this->_data[$name]);
+		return array_key_exists($name,$this->_data);
 	}
 	public function __unset($name) { 
 		unset($this->_data[$name]);
 	}
 	public function __toString() { 
-		if (isset($this->_data['id'])) { 
+		if (array_key_exists('id',$this->_data)) { 
 			return (string)$this->_data['id'];
 		} else {
 			if ($this->_assertLazyLoadSetup(true)) { 
