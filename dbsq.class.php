@@ -107,6 +107,18 @@ class DBSQ {
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
 		}
 	}
+	public function setFromArray($array=array()) {
+		foreach ($array as $key => $val) { 
+			$this->$key = $val;
+		}
+	}
+	public function setFromFilteredArray($array=array(),$fields=array()) { 
+		foreach ($array as $key => $val) { 
+			if (in_array($key,$fields)) { 
+				$this->$key=$val;
+			}
+		}
+	}
 	static public function setMySQLCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysql://$username:$password@$host/$database";
 		self::_startTime();
