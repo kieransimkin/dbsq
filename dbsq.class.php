@@ -57,7 +57,13 @@ class DBSQ {
 			$this->_lazyLoadMode='done';
 			return $this->_data[$name];
 		} else if ($this->_lazyLoadMode=='col') { 
-			return $this->_doGetCol($name);
+			try { 
+				return $this->_doGetCol($name);
+			} catch (DBSQ_Exception $e) { 
+				$this->_doGetRow();
+				$this->_lazyLoadMode='done';
+				return $this->_data[$name];
+			}
 		} else { 
 			throw new DBSQ_Exception('Unable to find property: '.$name);
 			return null;
