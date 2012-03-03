@@ -110,8 +110,6 @@ class DBSQ {
 	}
 	public function getDataArray() { 
 		$ldata=$this->_data;
-		$ldata[ucfirst(self::_getTableName()).'ID']=$ldata['id'];
-		unset($ldata['id']);
 		$ldata=$this->_convertObjectsToIDs($ldata);
 		return $ldata;
 	}
