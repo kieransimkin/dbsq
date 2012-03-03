@@ -78,6 +78,13 @@ class DBSQ {
 			return 'null';
 		}
 	}
+	public function getDataArray() { 
+		$ldata=$this->_data;
+		$ldata[ucfirst(self::_getTableName()).'ID']=$ldata['id'];
+		unset($ldata['id']);
+		$ldata=$this->_convertObjectsToIDs($ldata);
+		return $ldata;
+	}
 	function __construct() { 
 		if (self::_getTableName()=='DBSQ') { 
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
