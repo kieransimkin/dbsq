@@ -408,7 +408,7 @@ class DBSQ {
 		}
 		return $data;
 	}
-	static private function _getTableName() { 
+	static protected function _getTableName() { 
 		return strtolower(get_called_class());
 	}
 }
