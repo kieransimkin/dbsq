@@ -47,35 +47,65 @@ class DBSQ {
 	private $_localQueryTime=0;
 
 	public function __get($name) { 
-		if (isset($this->_data[$name])) { 
+		if (array_key_exists($name,$this->_data)) { 
 			return $this->_data[$name];
 		} else if (substr($name,-3,3)=='_id') { 
-			return $this->_data[substr($name,0,strlen($name)-3)];	
+			$fieldname=substr($name,0,strlen($name)-3);
+			return $this->$fieldname->id;
 		} else if ($this->_lazyLoadMode=='row') { 
 			$this->_doGetRow();
-			$new->_lazyLoadMode='done';
+			$this->_lazyLoadMode='done';
 			return $this->_data[$name];
 		} else if ($this->_lazyLoadMode=='col') { 
-			return $this->_doGetCol($name);
+			try { 
+				return $this->_doGetCol($name);
+			} catch (DBSQ_Exception $e) { 
+				$this->_doGetRow();
+				$this->_lazyLoadMode='done';
+				return $this->_data[$name];
+			}
 		} else { 
 			throw new DBSQ_Exception('Unable to find property: '.$name);
 			return null;
 		}
 	}
 	public function __set($name,$value) { 
-		$this->_setDataVal($name,$value);
+		if (is_object($value)) { 
+			$this->_data[$name]=$value;
+		} else { 
+			$this->_setDataVal($name,$value);
+		}
 	}
 	public function __isset($name) { 
-		return isset($this->_data[$name]);
+		return array_key_exists($name,$this->_data);
 	}
 	public function __unset($name) { 
 		unset($this->_data[$name]);
 	}
 	public function __toString() { 
-		if (isset($this->_data['id'])) { 
+		if (array_key_exists('id',$this->_data)) { 
 			return (string)$this->_data['id'];
 		} else {
-			return 'null';
+			if ($this->_assertLazyLoadSetup(true)) { 
+				return $this->__get('id');
+			} else { 
+				return 'null';
+			}
+		}
+	}
+	public function save() { 
+		if (func_num_args()==1) { 
+			if (func_get_arg(0)===null) { 
+				unset($this->_data['id']);
+			} else { 
+				$this->_data['id']=func_get_arg(0);
+			}
+		}
+		if (!isset($this->_data['id'])) { 
+			return $this->_create();
+		} else { 
+			$this->_update();
+			return $this->_data['id'];
 		}
 	}
 	public function getDataArray() { 
@@ -88,6 +118,18 @@ class DBSQ {
 	function __construct() { 
 		if (self::_getTableName()=='DBSQ') { 
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
+		}
+	}
+	public function setFromArray($array=array()) {
+		foreach ($array as $key => $val) { 
+			$this->$key = $val;
+		}
+	}
+	public function setFromFilteredArray($array=array(),$fields=array()) { 
+		foreach ($array as $key => $val) { 
+			if (in_array($key,$fields)) { 
+				$this->$key=$val;
+			}
 		}
 	}
 	static public function setMySQLCredentials($username,$password,$database,$host='localhost') { 
@@ -110,12 +152,27 @@ class DBSQ {
 			return null;
 		}
 	}
+	static public function query($query,$params=array()) { 
+		return self::$_db->query($query,$params);
+	}
+	static public function getOne($query,$params=array()) { 
+		return self::$_db->getOne($query,$params);
+	}
+	static public function getRow($query,$params=array(),$fetchmode=DB_FETCHMODE_DEFAULT) { 
+		return self::$_db->getRow($query,$params,$fetchmode);
+	}
+	static public function getCol($query,$col=0,$params=array()) { 
+		return self::$_db->getCol($query,$col,$params);
+	}
+	static public function getAssoc($query, $force_array = false, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT, $group = false) { 
+		return self::$_db->getAssoc($query,$force_array,$params,$fetchmode,$group);
+	}
 	static public function get($id=null,$uniqueindexname='id',$forcelazy=false,$forceprecache=false) { 
 		if (is_null($id)) { 
 			return self::_getNewInstance();
 		}
 		if ($forcelazy && $forcelazy!='row' && $forcelazy!='col') { 
-			throw new DBSQ_Exception('forcelazy must be row or col');
+			throw new DBSQ_Exception('forcelazy must be row or col or false');
 			return;
 		}
 		if (isset(self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id])) { 
@@ -134,29 +191,19 @@ class DBSQ {
 			self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id]=$new;
 			return $new;
 		}
-		$new->_doGetRow();
+		if ($forcelazy=='col') { 
+			$new->_lazyLoadMode='col';
+			$new->_doGetCol($uniqueindexname);
+		} else { 
+			$new->_doGetRow();
+		}
 		self::$_cache[self::_getTableName().'-'.$uniqueindexname.'-'.$id]=$new;
 		return $new;
-	}
-	public function save() { 
-		if (func_num_args()==1) { 
-			if (func_get_arg(0)===null) { 
-				unset($this->_data['id']);
-			} else { 
-				$this->_data['id']=func_get_arg(0);
-			}
-		}
-		if (!isset($this->_data['id'])) { 
-			return $this->_create();
-		} else { 
-			$this->_update();
-			return $this->_data['id'];
-		}
 	}
 	// This will need customizing for non-MySQL DBs:
 	static public function lastInsertID() { 
 		self::_startTime();
-		$res=self::$_db->getOne('select last_insert_id()');
+		$res=self::getOne('select last_insert_id()');
 		self::_endTime();
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
@@ -183,6 +230,10 @@ class DBSQ {
 			$classname=self::_getTableName();
 		}
 		self::_endTime($classname);
+		if (is_null($res)) { 
+			throw new DBSQ_Exception('No results');
+			return null;
+		}
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
@@ -202,6 +253,17 @@ class DBSQ {
 			$ret[]=$new;
 		}
 		return $ret;
+	}
+	static public function create($data) { 
+		$new=self::_getNewInstance();
+		foreach ($data as $key => $val) { 
+			$new->$key=$val;
+		}
+		$id=$new->_create();
+		$new->_data['id']=$new->_lazyLoadId=$id;
+		$new->_lazyLoadIndexName='id';
+		$new->_lazyLoadMode='done';
+		return $new;
 	}
 	private function _setDataVal($key,$val) { 
 		if (is_object($val)) { 
@@ -266,17 +328,25 @@ class DBSQ {
 	private function _getFieldArray() { 
 		return array_keys($this->_data);
 	}
-	private function _assertLazyLoadSetup() { 
+	private function _assertLazyLoadSetup($nothrow=false) { 
 		if (is_null($this->_lazyLoadId) || is_null($this->_lazyLoadIndexName) || is_null($this->_lazyLoadMode)) { 
-			throw new DBSQ_Exception('You need to load the object before you can read from it!');
-			return;
+			if (!$nothrow) { 
+				throw new DBSQ_Exception('You need to load the object before you can read from it!');
+			}
+			return false;
+		} else { 
+			return true;
 		}
 	}
 	private function _doGetCol($colname) { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::$_db->getOne('select ! from `'.self::_getTableName().'` WHERE ! = ?', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
+		$res=self::getOne('select ! from `'.self::_getTableName().'` WHERE ! = ? LIMIT 1', array($colname, $this->_lazyLoadIndexName, $this->_lazyLoadId));
 		self::_endTime($this);
+		if (is_null($res)) { 
+			throw new DBSQ_Exception('Unable to lookup column: '.$colname);
+			return null;
+		}
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
@@ -287,8 +357,12 @@ class DBSQ {
 	private function _doGetRow() { 
 		$this->_assertLazyLoadSetup();
 		self::_startTime();
-		$res=self::$_db->getRow('select * from `'.self::_getTableName().'` WHERE ! = ?', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
+		$res=self::getRow('select * from `'.self::_getTableName().'` WHERE ! = ? LIMIT 1', array($this->_lazyLoadIndexName, $this->_lazyLoadId),DB_FETCHMODE_ASSOC);
 		self::_endTime($this);
+		if (is_null($res)) { 
+			throw new DBSQ_Exception('Unable to lookup row');
+			return null;
+		}
 		if (PEAR::isError($res)) { 
 			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
 			return null;
