@@ -114,7 +114,7 @@ class DBSQ {
 		return $ldata;
 	}
 	function __construct() { 
-		if (self::_getTableName()=='DBSQ') { 
+		if (self::_getTableName()=='dbsq') { 
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
 		}
 	}
@@ -221,7 +221,7 @@ class DBSQ {
 	}
 	static public function getAll($where="1 = 1",$args=array(),$classname=null) { 
 		self::_startTime();
-		if (self::_getTableName()=='DBSQ' && !is_null($classname)) { 
+		if (self::_getTableName()=='dbsq' && !is_null($classname)) { 
 			$res=self::$_db->getAll($where, $args,DB_FETCHMODE_ASSOC);
 		} else { 
 			$res=self::$_db->getAll('select * from `'.self::_getTableName().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
@@ -371,7 +371,7 @@ class DBSQ {
 		if (is_null($classname)) { 
 			$classname=self::_getTableName();
 		}
-		if ($classname=='DBSQ') { 
+		if ($classname=='dbsq') { 
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
 			return null;
 		}
