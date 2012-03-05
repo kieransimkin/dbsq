@@ -219,12 +219,15 @@ class DBSQ {
 		}
 		return $res;
 	}
-	static public function getAll($where="1 = 1",$args=array(),$classname=null) { 
+	static public function rawGetAll($query,$args=array(),$fetchmode=DB_FETCHMODE_ASSOC) { 
+		return self::$_db->getAll($query,$args,$fetchmode);
+	}
+	static public function getAll($where="1 = 1",$args=array(),$classname=null,$suffix='') { 
 		self::_startTime();
 		if (self::_getTableName()=='dbsq' && !is_null($classname)) { 
-			$res=self::$_db->getAll($where, $args,DB_FETCHMODE_ASSOC);
+			$res=self::$_db->getAll($where.' '.$suffix, $args,DB_FETCHMODE_ASSOC);
 		} else { 
-			$res=self::$_db->getAll('select * from `'.self::_getTableName().'` WHERE '.$where, $args,DB_FETCHMODE_ASSOC);
+			$res=self::$_db->getAll('select * from `'.self::_getTableName().'` WHERE '.$where.' '.$suffix, $args,DB_FETCHMODE_ASSOC);
 			$classname=self::_getTableName();
 		}
 		self::_endTime($classname);
