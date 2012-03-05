@@ -209,6 +209,16 @@ class DBSQ {
 		}
 		return $res;
 	}
+	static public function foundRows() { 
+		self::_startTime();
+		$res=self::getOne('select found_rows()');
+		self::_endTime();
+		if (PEAR::isError($res)) { 
+			throw new DBSQ_Exception($res->getMessage(),$res->getCode());
+			return null;
+		}
+		return $res;
+	}
 	static public function affectedRows() { 
 		self::_startTime();
 		$res=self::$_db->affectedRows();
@@ -222,12 +232,16 @@ class DBSQ {
 	static public function rawGetAll($query,$args=array(),$fetchmode=DB_FETCHMODE_ASSOC) { 
 		return self::$_db->getAll($query,$args,$fetchmode);
 	}
-	static public function getAll($where="1 = 1",$args=array(),$classname=null,$suffix='') { 
+	static public function getAll($where="1 = 1",$args=array(),$classname=null,$suffix='',$nocalcfoundrows=false) { 
 		self::_startTime();
 		if (self::_getTableName()=='dbsq' && !is_null($classname)) { 
 			$res=self::$_db->getAll($where.' '.$suffix, $args,DB_FETCHMODE_ASSOC);
 		} else { 
-			$res=self::$_db->getAll('select * from `'.self::_getTableName().'` WHERE '.$where.' '.$suffix, $args,DB_FETCHMODE_ASSOC);
+			if (!$nocalcfoundrows) { 
+				$res=self::$_db->getAll('select sql_calc_found_rows * from `'.self::_getTableName().'` WHERE '.$where.' '.$suffix, $args,DB_FETCHMODE_ASSOC);
+			} else { 
+				$res=self::$_db->getAll('select * from `'.self::_getTableName().'` WHERE '.$where.' '.$suffix, $args,DB_FETCHMODE_ASSOC);
+			}
 			$classname=self::_getTableName();
 		}
 		self::_endTime($classname);
