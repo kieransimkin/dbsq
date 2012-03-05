@@ -263,7 +263,7 @@ class DBSQ {
 				$new->_lazyLoadId=$row['id'];
 				$new->_lazyLoadIndexName='id';
 			}
-			$new->_loadDataRow($res);
+			$new->_loadDataRow($row);
 			self::$_cache[$classname.'-id-'.$row['id']]=$new;
 			$ret[]=$new;
 		}
