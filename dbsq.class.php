@@ -110,7 +110,6 @@ class DBSQ {
 	}
 	public function getDataArray() { 
 		$ldata=$this->_data;
-		var_dump($ldata);
 		$ldata=$this->_convertObjectsToIDs($ldata);
 		return $ldata;
 	}
