@@ -308,7 +308,7 @@ class DBSQ {
 					$this->_data[$varname]=$new;
 				}
 			} else { 
-				print "class not found for key $key ";
+				print "class not found for key $key ($varname) ";
 				$this->_data[$okey]=$val;
 			}
 		} else { 
