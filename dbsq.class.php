@@ -291,11 +291,11 @@ class DBSQ {
 			$key=substr($key,0,strlen($key)-3);
 			$bits=explode(self::$_foreignKeySeparator,$key,2);
 			$prefix='';
-			$varname=$key;
+			$varname=ucfirst($key);
 			if (count($bits)>1) { 
 				print "bits found for key $key ";
 				$prefix=$bits[0];
-				$varname=$bits[1];
+				$varname=ucfirst($bits[1]);
 			}
 			if (!is_null($val) && class_exists($varname)) { 
 				print "Class found for key $key ";
