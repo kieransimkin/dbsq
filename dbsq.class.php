@@ -284,29 +284,38 @@ class DBSQ {
 		if (is_object($val)) { 
 			$val=(string)$val;
 		}
+		print "Setting data val key: $key val: $val ";
 		if (substr($key,-3,3)=='_id') { 
+			print "id found for key $key ";
 			$okey=$key;
 			$key=substr($key,0,strlen($key)-3);
 			$bits=explode(self::$_foreignKeySeparator,$key,2);
 			$prefix='';
 			$varname=$key;
 			if (count($bits)>1) { 
+				print "bits found for key $key ";
 				$prefix=$bits[0];
 				$varname=$bits[1];
 			}
 			if (!is_null($val) && class_exists($varname)) { 
+				print "Class found for key $key ";
 				$new=$varname::get($val,'id','col');
 				if (strlen($prefix)>0) { 
+					print "prefix found ";
 					$this->_data[$prefix.self::$_foreignKeySeparator.$varname]=$new;
 				} else { 
+					print "prefix not found ";
 					$this->_data[$varname]=$new;
 				}
 			} else { 
+				print "class not found for key $key ";
 				$this->_data[$okey]=$val;
 			}
 		} else { 
+			print "Id not found for key $key ";
 			$this->_data[$key]=$val;
 		}
+		print "\n";
 	}
 	private function _loadDataRow($data) { 
 		foreach ($data as $key => $val) { 
