@@ -284,7 +284,6 @@ class DBSQ {
 		if (is_object($val)) { 
 			$val=(string)$val;
 		}
-		print "Setting data val key: $key val: $val ";
 		if (substr($key,-3,3)=='_id') { 
 			$okey=$key;
 			$key=substr($key,0,strlen($key)-3);
@@ -296,11 +295,15 @@ class DBSQ {
 				$varname=ucfirst($bits[1]);
 			}
 			if (!is_null($val)) { 
-				$new=$varname::get($val,'id','col');
-				if (strlen($prefix)>0) { 
-					$this->_data[$prefix.self::$_foreignKeySeparator.$varname]=$new;
-				} else { 
-					$this->_data[$varname]=$new;
+				try { 
+					$new=$varname::get($val,'id','col');
+					if (strlen($prefix)>0) { 
+						$this->_data[$prefix.self::$_foreignKeySeparator.$varname]=$new;
+					} else { 
+						$this->_data[$varname]=$new;
+					}
+				} catch (Exception $e) { 
+					$this->_data[$okey]=$val;
 				}
 			} else { 
 				$this->_data[$okey]=$val;
