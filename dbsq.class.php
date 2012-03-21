@@ -280,6 +280,12 @@ class DBSQ {
 		$new->_lazyLoadMode='done';
 		return $new;
 	}
+	public function _get_lazyLoadId() { 
+		return $this->_lazyLoadId;	
+	}
+	public function _get_lazyLoadIndexName() { 
+		return $this->_lazyLoadIndexName;
+	}
 	private function _setDataVal($key,$val) { 
 		if (is_object($val)) { 
 			$val=(string)$val;
