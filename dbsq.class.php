@@ -102,7 +102,11 @@ class DBSQ {
 			}
 		}
 		if (!isset($this->_data['id'])) { 
-			return $this->_create();
+			$ret=$this->_create();
+			$this->_lazyLoadId=$ret;
+			$this->_lazyLoadIndexName='id';
+			$this->_lazyLoadMode='done';
+			return $ret;
 		} else { 
 			$this->_update();
 			return $this->_data['id'];
