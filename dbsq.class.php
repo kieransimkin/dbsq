@@ -155,18 +155,23 @@ class DBSQ {
 		}
 	}
 	static public function query($query,$params=array()) { 
+		self::_assertDbConnected();
 		return self::$_db->query($query,$params);
 	}
 	static public function getOne($query,$params=array()) { 
+		self::_assertDbConnected();
 		return self::$_db->getOne($query,$params);
 	}
 	static public function getRow($query,$params=array(),$fetchmode=DB_FETCHMODE_DEFAULT) { 
+		self::_assertDbConnected();
 		return self::$_db->getRow($query,$params,$fetchmode);
 	}
 	static public function getCol($query,$col=0,$params=array()) { 
+		self::_assertDbConnected();
 		return self::$_db->getCol($query,$col,$params);
 	}
 	static public function getAssoc($query, $force_array = false, $params = array(), $fetchmode = DB_FETCHMODE_DEFAULT, $group = false) { 
+		self::_assertDbConnected();
 		return self::$_db->getAssoc($query,$force_array,$params,$fetchmode,$group);
 	}
 	static public function get($id=null,$uniqueindexname='id',$forcelazy=false,$forceprecache=false) { 
@@ -224,6 +229,7 @@ class DBSQ {
 		return $res;
 	}
 	static public function affectedRows() { 
+		self::_assertDbConnected();
 		self::_startTime();
 		$res=self::$_db->affectedRows();
 		self::_endTime();
@@ -234,9 +240,11 @@ class DBSQ {
 		return $res;
 	}
 	static public function rawGetAll($query,$args=array(),$fetchmode=DB_FETCHMODE_ASSOC) { 
+		self::_assertDbConnected();
 		return self::$_db->getAll($query,$args,$fetchmode);
 	}
 	static public function getAll($where="1 = 1",$args=array(),$classname=null,$suffix='',$nocalcfoundrows=false) { 
+		self::_assertDbConnected();
 		self::_startTime();
 		if (self::_getTableName()=='dbsq' && !is_null($classname)) { 
 			$res=self::$_db->getAll($where.' '.$suffix, $args,DB_FETCHMODE_ASSOC);
@@ -328,6 +336,7 @@ class DBSQ {
 		}
 	}
 	private function _create() { 
+		self::_assertDbConnected();
 		$ldata=$this->_data;
 		unset($ldata['id']);
 		$ldata=$this->_convertObjectsToIDs($ldata);
@@ -341,6 +350,7 @@ class DBSQ {
 		return ($this->_data['id']=$this->lastInsertID());
 	}
 	private function _update() { 
+		self::_assertDbConnected();
 		$ldata=$this->_data;
 		$id=$ldata['id'];
 		unset($ldata['id']);
@@ -356,6 +366,11 @@ class DBSQ {
 	}
 	private function _getFieldArray() { 
 		return array_keys($this->_data);
+	}
+	static private function _assertDbConnected() { 
+		if (is_null(self::$_db)) { 
+			throw new DBSQ_Exception('DB not connected');
+		}
 	}
 	private function _assertLazyLoadSetup($nothrow=false) { 
 		if (is_null($this->_lazyLoadId) || is_null($this->_lazyLoadIndexName) || is_null($this->_lazyLoadMode)) { 
