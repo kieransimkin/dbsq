@@ -105,7 +105,7 @@ class DBSQ {
 			$ret=$this->_create();
 			$this->_lazyLoadId=$ret;
 			$this->_lazyLoadIndexName='id';
-			$this->_lazyLoadMode='done';
+			$this->_lazyLoadMode='col';
 			return $ret;
 		} else { 
 			$this->_update();
@@ -281,7 +281,7 @@ class DBSQ {
 		$id=$new->_create();
 		$new->_data['id']=$new->_lazyLoadId=$id;
 		$new->_lazyLoadIndexName='id';
-		$new->_lazyLoadMode='done';
+		$new->_lazyLoadMode='col';
 		return $new;
 	}
 	public function _get_lazyLoadId() { 
