@@ -317,11 +317,12 @@ class DBSQ {
 					$new=$varname::get($val,'id','col');
 					if (strlen($prefix)>0) { 
 						$this->_data[$prefix.self::$_foreignKeySeparator.strtolower($varname)]=$new;
+						unset($this->_data[$prefix.self::$_foreignKeySeparator.strtolower($varname).'_id']);
 					} else { 
 						$this->_data[strtolower($varname)]=$new;
+						unset($this->_data[strtolower($varname).'_id']);
 					}
 				} catch (Exception $e) { 
-					var_dump($e);
 					$this->_data[$okey]=$val;
 				}
 			} else { 
