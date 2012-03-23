@@ -69,6 +69,13 @@ class DBSQ {
 			return null;
 		}
 	}
+	public function rawGet($name) { 
+		if (array_key_exists($name,$this->_data)) { 
+			return $this->_data[$name];
+		} else { 
+			return null;
+		}
+	}
 	public function __set($name,$value) { 
 		if (is_object($value)) { 
 			$this->_data[$name]=$value;
