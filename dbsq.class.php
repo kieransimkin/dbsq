@@ -79,6 +79,9 @@ class DBSQ {
 	public function __isset($name) { 
 		return array_key_exists($name,$this->_data);
 	}
+	public function isset($name) { 
+		return array_key_exists($name,$this->_data);
+	}
 	public function __unset($name) { 
 		unset($this->_data[$name]);
 	}
