@@ -321,6 +321,7 @@ class DBSQ {
 						$this->_data[strtolower($varname)]=$new;
 					}
 				} catch (Exception $e) { 
+					var_dump($e);
 					$this->_data[$okey]=$val;
 				}
 			} else { 
