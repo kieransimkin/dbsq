@@ -433,9 +433,9 @@ class DBSQ {
 	}
 	static private function _getNewInstance($classname=null) { 
 		if (is_null($classname)) { 
-			$classname=self::$classNamePrefix.self::_getTableName().self::$classNameSuffix;
+			$classname=self::$_classNamePrefix.self::_getTableName().self::$_classNameSuffix;
 		} else { 
-			$classname=self::$classNamePrefix.$classname.self::$classNameSuffix;
+			$classname=self::$_classNamePrefix.$classname.self::$_classNameSuffix;
 		}
 		if ($classname=='dbsq') { 
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
@@ -478,8 +478,9 @@ class DBSQ {
 		if (is_null($classname)) { 
 			$classname=get_called_class();
 		}
-		if (strlen(self::$classNamePrefix)>0 && substr($classname,0,strlen(self::$classNamePrefix))==$classNamePrefix) { 
-			return strtolower(substr($classname,strlen(self::$classNamePrefix)));	
+		// TODO - this doesn't properly strip off classNameSuffix
+		if (strlen(self::$_classNamePrefix)>0 && substr($classname,0,strlen(self::$_classNamePrefix))==self::$_classNamePrefix) { 
+			return strtolower(substr($classname,strlen(self::$_classNamePrefix)));	
 		} else { 
 			return strtolower($classname);
 		}
