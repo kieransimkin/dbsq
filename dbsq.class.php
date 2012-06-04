@@ -330,7 +330,8 @@ class DBSQ {
 			}
 			if (!is_null($val)) { 
 				try { 
-					$new=$varname::get($val,'id','col');
+					$classname=self::$_classNamePrefix.$varname.self::$_classNameSuffix;
+					$new=$classname::get($val,'id','col');
 					if (strlen($prefix)>0) { 
 						$this->_data[$prefix.self::$_foreignKeySeparator.strtolower($varname)]=$new;
 						unset($this->_data[$prefix.self::$_foreignKeySeparator.strtolower($varname).'_id']);
