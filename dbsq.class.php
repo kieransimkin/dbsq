@@ -40,6 +40,8 @@ class DBSQ {
 	static private $_cache=array();
 	static private $_queryTime=0;
 	static private $_queryTimeStartPoint=null;
+	static private $_classNamePrefix='';
+	static private $_classNameSuffix='';
 	private $_lazyLoadId=null;
 	private $_lazyLoadIndexName=null;
 	private $_lazyLoadMode=null;
@@ -129,6 +131,12 @@ class DBSQ {
 				$this->$key=$val;
 			}
 		}
+	}
+	static public function setClassNamePrefix($prefix) { 
+		self::$classNamePrefix=$prefix;
+	}
+	static public function setClassNameSuffix($suffix) { 
+		self::$classNameSuffix=$suffix;
 	}
 	static public function setMySQLCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysql://$username:$password@$host/$database";
@@ -235,6 +243,7 @@ class DBSQ {
 	static public function getAll($where="1 = 1",$args=array(),$classname=null,$suffix='',$nocalcfoundrows=false) { 
 		self::_startTime();
 		if (self::_getTableName()=='dbsq' && !is_null($classname)) { 
+			$classname=self::_getTableName($classname);
 			$res=self::$_db->getAll($where.' '.$suffix, $args,DB_FETCHMODE_ASSOC);
 		} else { 
 			if (!$nocalcfoundrows) { 
@@ -294,7 +303,7 @@ class DBSQ {
 				$prefix=$bits[0];
 				$varname=$bits[1];
 			}
-			if (!is_null($val) && class_exists($varname)) { 
+			if (!is_null($val) && class_exists(self::$classNamePrefix.$varname.self::$classNameSuffix)) { 
 				$new=$varname::get($val,'id','col');
 				if (strlen($prefix)>0) { 
 					$this->_data[$prefix.self::$_foreignKeySeparator.$varname]=$new;
@@ -386,7 +395,9 @@ class DBSQ {
 	}
 	static private function _getNewInstance($classname=null) { 
 		if (is_null($classname)) { 
-			$classname=self::_getTableName();
+			$classname=self::$classNamePrefix.self::_getTableName().self::$classNameSuffix;
+		} else { 
+			$classname=self::$classNamePrefix.$classname.self::$classNameSuffix;
 		}
 		if ($classname=='dbsq') { 
 			throw new DBSQ_Exception('You cannot create instances of the DBSQ class');
@@ -425,7 +436,14 @@ class DBSQ {
 		}
 		return $data;
 	}
-	static protected function _getTableName() { 
-		return strtolower(get_called_class());
+	static protected function _getTableName($classname=null) { 
+		if (is_null($classname)) { 
+			$classname=get_called_class();
+		}
+		if (strlen(self::$classNamePrefix)>0 && substr($classname,0,strlen(self::$classNamePrefix))==$classNamePrefix) { 
+			return strtolower(substr($classname,strlen(self::$classNamePrefix)));	
+		} else { 
+			return strtolower($classname);
+		}
 	}
 }
