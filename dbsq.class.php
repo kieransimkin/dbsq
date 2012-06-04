@@ -144,10 +144,10 @@ class DBSQ {
 		}
 	}
 	static public function setClassNamePrefix($prefix) { 
-		self::$classNamePrefix=$prefix;
+		self::$_classNamePrefix=$prefix;
 	}
 	static public function setClassNameSuffix($suffix) { 
-		self::$classNameSuffix=$suffix;
+		self::$_classNameSuffix=$suffix;
 	}
 	static public function setMySQLCredentials($username,$password,$database,$host='localhost') { 
 		self::$_dsn="mysql://$username:$password@$host/$database";
