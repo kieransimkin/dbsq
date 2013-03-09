@@ -189,6 +189,12 @@ class DBSQ {
 		self::_assertDbConnected();
 		return self::$_db->getAssoc($query,$force_array,$params,$fetchmode,$group);
 	}
+	static public function getWhere($where="1 = 1",$args=array(),$forcelazy=false,$forceprecache=false) { 
+		self::_startTime();
+		$res=self::getOne('select id from `'.self::_getTableName().'` WHERE '.$where.' LIMIT 1', $args);
+		self::_endTime($this);
+		return static::get($res,'id',$forcelazy,$forceprecache);
+	}
 	static public function get($id=null,$uniqueindexname='id',$forcelazy=false,$forceprecache=false) { 
 		if (is_null($id)) { 
 			return self::_getNewInstance();
